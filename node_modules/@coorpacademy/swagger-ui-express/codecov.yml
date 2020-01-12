@@ -1,0 +1,7 @@
+codecov:
+  notify:
+    require_ci_to_pass: yes
+coverage:
+  parsers:
+    javascript:
+enable_partials: yes

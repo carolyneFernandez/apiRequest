@@ -1,0 +1,393 @@
+openapi: 3.0.0
+info:
+  description: "API contient des infos sur des utilisateurs"
+  version: "0.0.0"
+  title: "API LPDW 2020"
+servers:
+  - url: 'http://localhost:3000/'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Flight:
+      type: object
+      properties:
+        flightNumber:
+          type: string
+        company:
+          type: string
+        departure:
+          type: string
+        destination:
+          type: string
+        date:
+          type: string
+        status:
+          type: string
+    User:
+      type: object
+      properties:
+        username:
+          type: string
+        fullname:
+          type: string
+        country:
+          type: string
+    Booking:
+      type: object
+      properties:
+        bookingNumber:
+          type: string
+        seatNumber:
+          type: string
+        class: 
+          type: string
+        flight:
+          type: string
+        passengerName:
+          type: string
+security:
+  - bearerAuth: []
+paths:
+  /users:
+    get:
+      tags:
+        - "users"
+      summary: "Return a list of users"
+      parameters:
+        - in: query
+          name: username
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The list of users
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+  /flights:
+    get:
+      tags:
+        - "flights"
+      summary: "Return a list of flights"
+      parameters:
+        - in: query
+          name: depart
+          schema:
+            type: string
+        - in: query
+          name: destination
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The list of flights matching with the given conditions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Flight'
+        '400':
+          description: One of the conditions is empty
+    post:
+      tags:
+        - "flights"
+      summary: "Create a flight"
+      security:
+        - bearerAuth: []
+      requestBody:
+        description: The body containing the data to create the flight
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Flight'
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                flightNumber:
+                  type: string
+                company:
+                  type: string
+                departure:
+                  type: string
+                destination:
+                  type: string
+                date:
+                  type: string
+              required:
+                - flightNumber
+                - company
+                - departure
+                - destination
+                - date
+      responses:
+        '201':
+          description: The Flight object created
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemas/Flight'
+        '400':
+          description: Missing data
+        '401':
+          description: Missing authorization header
+        '403':
+          description: user has not rights to execute this feature
+        '409':
+          description: The vol exists already
+  /flights/{flightNumber}:
+    get:
+      tags:
+        - "flights"
+      summary: "Return a flight with the given flightNumber"
+      parameters:
+        - in: path
+          name: flightNumber
+          schema:
+            type: string
+            required: true
+      responses:
+        '200':
+          description: 'The given flight'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Flight'
+            text/html:
+              schema:
+                type: string
+        '404':
+          description: 'The given flight does not exist'
+          content:
+            application/json:
+              schema:
+                type: object
+            text/html:
+              schema:
+                type: string
+    put:
+      tags:
+        - "flights"
+      summary: "Updates a flight"
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: flightNumber
+          schema:
+            type: string
+            required: true
+      requestBody:
+        description: The body with the data to update the flight
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                date:
+                  type: string
+      responses:
+        '200':
+          description: 'The updated flight'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Flight'
+        '400':
+          description: The given data is unvalid
+        '404':
+          description: 'The given flight does not exist'
+        '401':
+          description: Missing authorization header
+        '403':
+          description: user has not rights to execute this feature
+    delete:
+      tags:
+        - "flights"
+      summary: "Delete a flight"
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: flightNumber
+          schema:
+            type: string
+            required: true
+      responses:
+        '204':
+          description: 'Flight deleted'
+        '404':
+          description: 'Flight not found'
+        '401':
+          description: Missing authorization header
+        '403':
+          description: User has not rights to execute this feature
+  /booking:
+    get:
+      tags:
+        - "booking"
+      summary: "Return a list of booking"
+      parameters:
+        - in: query
+          name: passengerName
+          description: The passenger from who you want to get the booking
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The list of booking matching with the given conditions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Booking'
+        '400':
+          description: One of the conditions is empty
+    post:
+      tags:
+        - "booking"
+      summary: "Create a booking"
+      security:
+        - bearerAuth: []
+      requestBody:
+        description: The body containing the data to create the booking
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Booking'
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                bookingNumber:
+                  type: string
+                seatNumber:
+                  type: string
+                class: 
+                  type: string
+                flight:
+                  type: string
+                passengerName:
+                  type: string
+              required:
+                - bookingNumber
+                - seatNumber
+                - class
+                - flight
+                - passengerName
+      responses:
+        '201':
+          description: The booking object created
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemas/Booking'
+        '400':
+          description: Missing data
+        '404': 
+          description: This flight does not exists
+        '401':
+          description: Missing authorization header
+        '403':
+          description: user has not rights to execute this feature
+        '409':
+          description: The booking already exists 
+  /booking/{bookingNumber}:
+    get:
+      tags:
+        - "booking"
+      summary: "Return a booking with the given bookingNumber"
+      parameters:
+        - in: path
+          name: bookingNumber
+          description: Booking number
+          schema:
+            type: string
+            required: true
+      responses:
+        '200':
+          description: 'The given booking'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Booking'
+            text/html:
+              schema:
+                type: string
+        '404':
+          description: 'The given booking does not exists'
+    put:
+      tags:
+        - "booking"
+      summary: "Update a booking"
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: bookingNumber
+          description: Booking number
+          schema:
+            type: string
+            required: true
+      requestBody:
+        description: The body with the data to update the booking
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                seatNumber:
+                  type: string
+                class: 
+                  type: string
+              required:
+                - seatNumber
+                - class
+      responses:
+        '200':
+          description: 'The updated booking'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Booking'
+        '400':
+          description: The given data is unvalid
+        '404':
+          description: 'The given booking does not exists'
+        '401':
+          description: Missing authorization header
+        '403':
+          description: user has not rights to execute this feature
+    delete:
+      tags:
+        - "booking"
+      summary: "Delete a booking"
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: bookingNumber
+          description: Booking number
+          schema:
+            type: string
+            required: true
+      responses:
+        '200':
+          description: 'Booking deleted'
+        '404':
+          description: Booking not found
+        '401':
+          description: Missing authorization header
+        '403':
+          description: user has not rights to execute this feature
